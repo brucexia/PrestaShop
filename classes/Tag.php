@@ -147,8 +147,8 @@ class TagCore extends ObjectModel
 			LEFT JOIN `'._DB_PREFIX_.'category_product` cp ON (cp.`id_category` = cg.`id_category`)
 			WHERE cg.`id_group` '.$sql_groups.'
 		)
-		GROUP BY t.id_tag
-		ORDER BY times DESC
+		GROUP BY t.name
+		ORDER BY t.name
 		LIMIT 0, '.(int)$nb);
 	}
 
