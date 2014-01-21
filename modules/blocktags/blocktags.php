@@ -134,6 +134,8 @@ class BlockTags extends Module
 	function hookHeader($params)
 	{
 		$this->context->controller->addCSS(($this->_path).'blocktags.css', 'all');
+        $this->context->controller->addJqueryPlugin('cooki-plugin');
+        $this->context->controller->addJS(_THEME_JS_DIR_.'tags.js');
 	}
 
 }
