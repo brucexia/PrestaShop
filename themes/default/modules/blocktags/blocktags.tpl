@@ -25,7 +25,7 @@
 
 <!-- Block tags module -->
 <div id="tags_block_left" class="block tags_block">
-	<p class="title_block">{l s='Search by Model' mod='blocktags'}</p>
+	<p class="title_block">{l s='Filter by Device' mod='blocktags'}</p>
 	<p class="block_content">
 {if $tags}
     <!--<form action="{$link->getPageLink('search')}" method="post">-->
