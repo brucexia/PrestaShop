@@ -191,7 +191,7 @@ class CategoryControllerCore extends FrontController
 		if (!$hookExecuted)
 		{
 			$this->context->smarty->assign('categoryNameComplement', '');
-			$this->nbProducts = $this->category->getProducts(null, null, null, $this->orderBy, $this->orderWay, true);
+			$this->nbProducts = $this->category->getProducts($this->context->language->id, null, null, $this->orderBy, $this->orderWay, true);
 			$this->pagination((int)$this->nbProducts); // Pagination must be call after "getProducts"
 			$this->cat_products = $this->category->getProducts($this->context->language->id, (int)$this->p, (int)$this->n, $this->orderBy, $this->orderWay);
 		}
