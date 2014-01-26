@@ -31,11 +31,8 @@
     <!--<form action="{$link->getPageLink('search')}" method="post">-->
     <select id="block_tag">
 	{foreach from=$tags item=tag name=myLoop}
-        <option value="{$tag.name|urlencode}"}>{$tag.name|escape:html:'UTF-8'}</value>
-        <!--<option value="{$link->getPageLink('search', true, NULL, "tag={$tag.name|urlencode}")|escape:'html'}">{$tag.name|escape:html:'UTF-8'}
+        <option value="{$tag.id_tag}"}>{$tag.name|escape:html:'UTF-8'}</value>
 
-            <a href="{$link->getPageLink('search', true, NULL, "tag={$tag.name|urlencode}")|escape:'html'}" title="{l s='More about' mod='blocktags'} {$tag.name|escape:html:'UTF-8'}" class="{$tag.class} {if $smarty.foreach.myLoop.last}last_item{elseif $smarty.foreach.myLoop.first}first_item{else}item{/if}">{$tag.name|escape:html:'UTF-8'}</a>
-        -->
         </option>
 	{/foreach}
     </select>

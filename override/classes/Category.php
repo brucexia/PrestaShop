@@ -579,7 +579,7 @@ class CategoryCore extends ObjectModel
 					FROM `' . _DB_PREFIX_ . 'product` p
 					' . Shop::addSqlAssociation('product', 'p') . '
 					LEFT JOIN `' . _DB_PREFIX_ . 'category_product` cp ON p.`id_product` = cp.`id_product`';
-            if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 'All') {
+            if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 1) {
                 $tag = $_COOKIE['tag'];
                 $sql .= ' LEFT JOIN `' . _DB_PREFIX_ . 'product_tag` pt ON (p.`id_product` = pt.`id_product`) ' .
                     'LEFT JOIN `' . _DB_PREFIX_ . 'tag` t ON (pt.`id_tag` = t.`id_tag` AND t.`id_lang` = ' . (int)$id_lang . ')' .
@@ -587,7 +587,7 @@ class CategoryCore extends ObjectModel
                     ($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '') .
                     ($active ? ' AND product_shop.`active` = 1' : '') .
                     ($id_supplier ? 'AND p.id_supplier = ' . (int)$id_supplier : '') .
-                    ' AND t.`name` LIKE \'%' . pSQL($tag) . '%\'';
+                    ' AND (t.`id_tag` =' . $tag . 'or t.id_tag=1)';
             } else {
 
                 $sql .= ' WHERE cp.`id_category` = ' . (int)$this->id .
@@ -595,6 +595,7 @@ class CategoryCore extends ObjectModel
                     ($active ? ' AND product_shop.`active` = 1' : '') .
                     ($id_supplier ? 'AND p.id_supplier = ' . (int)$id_supplier : '');
             }
+            error_log("sql " . $sql);
             return (int)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql);
         }
 
@@ -626,7 +627,8 @@ class CategoryCore extends ObjectModel
 					AND il.`id_lang` = ' . (int)$id_lang . ')
 				LEFT JOIN `' . _DB_PREFIX_ . 'manufacturer` m
 					ON m.`id_manufacturer` = p.`id_manufacturer`';
-        if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 'All') {
+        //category 2 is home featured.
+        if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 1 && ((int)$this->id)>2) {
             $tag = $_COOKIE['tag'];
 
             $sql .= 'LEFT JOIN `' . _DB_PREFIX_ . 'product_tag` pt ON (p.`id_product` = pt.`id_product`)
@@ -636,7 +638,7 @@ class CategoryCore extends ObjectModel
                 . ($active ? ' AND product_shop.`active` = 1' : '')
                 . ($front ? ' AND product_shop.`visibility` IN ("both", "catalog")' : '')
                 . ($id_supplier ? ' AND p.id_supplier = ' . (int)$id_supplier : '')
-                . ' AND t.`name` LIKE \'%' . pSQL($tag) . '%\''
+                . ' AND (t.`id_tag` = ' . $tag.' or t.`id_tag`=1)'
                 . ' GROUP BY product_shop.id_product';
         } else {
             $sql .= ' WHERE product_shop.`id_shop` = ' . (int)$context->shop->id . '
@@ -647,6 +649,7 @@ class CategoryCore extends ObjectModel
                 . ' GROUP BY product_shop.id_product';
         }
 
+        error_log("product ".$sql);
         if ($random === true) {
             $sql .= ' ORDER BY RAND()';
             $sql .= ' LIMIT 0, ' . (int)$random_number_products;
@@ -654,6 +657,7 @@ class CategoryCore extends ObjectModel
             $sql .= ' ORDER BY ' . (isset($order_by_prefix) ? $order_by_prefix . '.' : '') . '`' . pSQL($order_by) . '` ' . pSQL($order_way) . '
 			LIMIT ' . (((int)$p - 1) * (int)$n) . ',' . (int)$n;
 
+        error_log("category getproducts ".$sql);
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
         if ($order_by == 'orderprice')
             Tools::orderbyPrice($result, $order_way);

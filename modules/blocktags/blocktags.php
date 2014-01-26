@@ -70,7 +70,9 @@ class BlockTags extends Module
 				$output .= '<div class="conf confirm">'.$this->l('Settings updated').'</div>';
 			}
 		}
-		return $output.$this->displayForm();
+        error_log($output);
+
+        return $output.$this->displayForm();
 	}
 
 	public function displayForm()
@@ -86,6 +88,7 @@ class BlockTags extends Module
 				<center><input type="submit" name="submitBlockTags" value="'.$this->l('Save').'" class="button" /></center>
 			</fieldset>
 		</form>';
+        error_log($output);
 		return $output;
 	}
 
@@ -136,6 +139,7 @@ class BlockTags extends Module
 		$this->context->controller->addCSS(($this->_path).'blocktags.css', 'all');
         $this->context->controller->addJqueryPlugin('cooki-plugin');
         $this->context->controller->addJS(_THEME_JS_DIR_.'tags.js');
-	}
+
+    }
 
 }
