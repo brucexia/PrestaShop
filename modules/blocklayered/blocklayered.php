@@ -2184,7 +2184,8 @@ class BlockLayered extends Module
 
 	public function getProductByFilters($selected_filters = array())
 	{
-		global $cookie;
+
+        global $cookie;
 
 		if (!empty($this->products))
 			return $this->products;
@@ -2199,7 +2200,11 @@ class BlockLayered extends Module
 			$alias_where = 'product_shop'; 
 
 		$query_filters_where = ' AND '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")';
-		$query_filters_from = '';
+        if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 1) {
+
+            $query_filters_where .= ' AND (t.`id_tag` =' . $_COOKIE['tag'] . ' or t.id_tag=1)';
+        }
+        $query_filters_from = '';
 		
 		$parent = new Category((int)$id_parent);
 		if (!count($selected_filters['category']))
@@ -2219,7 +2224,12 @@ class BlockLayered extends Module
 				AND c.active = 1)';
 		}
 
-		foreach ($selected_filters as $key => $filter_values)
+        if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 1) {
+
+            $query_filters_from .=' LEFT JOIN `' . _DB_PREFIX_ . 'product_tag` pt ON (p.`id_product` = pt.`id_product`) ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'tag` t ON (pt.`id_tag` = t.`id_tag` AND t.`id_lang` = ' . (int)$cookie->id_lang . ')' ;
+        }
+            foreach ($selected_filters as $key => $filter_values)
 		{
 			if (!count($filter_values))
 				continue;
@@ -2340,20 +2350,23 @@ class BlockLayered extends Module
 		}
 		
 		$query_filters_from .= Shop::addSqlAssociation('product', 'p');
-		
-		$all_products_out = self::query('
+		$out_sql = '
 		SELECT p.`id_product` id_product
 		FROM `'._DB_PREFIX_.'product` p
 		'.$price_filter_query_out.'
 		'.$query_filters_from.'
-		WHERE 1 '.$query_filters_where.' GROUP BY id_product');
-		
-		$all_products_in = self::query('
+		WHERE 1 '.$query_filters_where.' GROUP BY id_product';
+        error_log("out sql ". $out_sql);
+		$all_products_out = self::query($out_sql);
+		$in_sql = '
 		SELECT p.`id_product` id_product
 		FROM `'._DB_PREFIX_.'product` p
 		'.$price_filter_query_in.'
 		'.$query_filters_from.'
-		WHERE 1 '.$query_filters_where.' GROUP BY id_product');
+		WHERE 1 '.$query_filters_where.' GROUP BY id_product';
+        error_log("in sql ". $in_sql);
+
+        $all_products_in = self::query($in_sql);
 
 		$product_id_list = array();
 		
@@ -2372,44 +2385,83 @@ class BlockLayered extends Module
 		
 		if ($this->nbr_products == 0)
 			$this->products = array();
+
+
 		else
 		{
-			$n = (int)Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'));
-			$nb_day_new_product = (Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20);
-
-			$this->products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT
-				p.*,
-				'.($alias_where == 'p' ? '' : 'product_shop.*,' ).'
-				'.$alias_where.'.id_category_default,
+            $n = (int)Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'));
+            $nb_day_new_product = (Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20);
+            //category 2 is home featured.
+            if (isset($_COOKIE['tag']) && $_COOKIE['tag'] != 1) {
+                $tag = $_COOKIE['tag'];
+                $sql = 'SELECT p.*,' . ($alias_where == 'p' ? '' : 'product_shop.*,') . '
+				' . $alias_where . '.id_category_default,
 				pl.*,
 				MAX(image_shop.`id_image`) id_image,
-				il.legend, 
+				il.legend,
 				m.name manufacturer_name,
-				DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB(NOW(), INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
+				DATEDIFF(' . $alias_where . '.`date_add`, DATE_SUB(NOW(), INTERVAL ' . (int)$nb_day_new_product . ' DAY)) > 0 AS new,
 				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
-			FROM `'._DB_PREFIX_.'category_product` cp
-			LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
-			LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
-			'.Shop::addSqlAssociation('product', 'p').'
-			'.Product::sqlStock('p', null, false, Context::getContext()->shop).'
-			LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$cookie->id_lang.')
-			LEFT JOIN `'._DB_PREFIX_.'image` i  ON (i.`id_product` = p.`id_product`)'.
-			Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
-			LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$cookie->id_lang.')
-			LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
-			WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
-			AND '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.' AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
+			FROM `' . _DB_PREFIX_ . 'category_product` cp
+			LEFT JOIN ' . _DB_PREFIX_ . 'category c ON (c.id_category = cp.id_category)
+			LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON p.`id_product` = cp.`id_product`
+			' . Shop::addSqlAssociation('product', 'p') . '
+			' . Product::sqlStock('p', null, false, Context::getContext()->shop) . '
+			LEFT JOIN ' . _DB_PREFIX_ . 'product_lang pl ON (pl.id_product = p.id_product' . Shop::addSqlRestrictionOnLang('pl') . ' AND pl.id_lang = ' . (int)$cookie->id_lang . ')
+			LEFT JOIN `' . _DB_PREFIX_ . 'image` i  ON (i.`id_product` = p.`id_product`)' .
+                    Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1') . '
+			LEFT JOIN `' . _DB_PREFIX_ . 'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = ' . (int)$cookie->id_lang . ')
+			LEFT JOIN ' . _DB_PREFIX_ . 'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)' .
+            //Filter by DEVICE begins
+            'LEFT JOIN `' . _DB_PREFIX_ . 'product_tag` pt ON (p.`id_product` = pt.`id_product`)
+			LEFT JOIN `' . _DB_PREFIX_ . 'tag` t ON (pt.`id_tag` = t.`id_tag` AND t.`id_lang` = ' . (int)$cookie->id_lang . ')'.
+			//Filter by DEVICE end
+			' WHERE ' . $alias_where . ' . `active` = 1 AND ' . $alias_where . ' . `visibility` IN("both", "catalog")
+                    AND ' . (Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= ' . (int)$parent->nleft . ' AND c.nright <= ' . (int)$parent->nright : 'c.id_category = ' . (int)$id_parent) . '
 			AND c.active = 1
-			AND p.id_product IN ('.implode(',', $product_id_list).')
+			AND p.id_product IN (' . implode(',', $product_id_list) .
+                    //Filter by DEVICE begins
+
+                    ') AND (t.`id_tag` =' . $tag. ' or t.`id_tag`=1)' .
+                    //Filter by DEVICE end
+
+            'GROUP BY product_shop.id_product
+			ORDER BY ' . Tools::getProductsOrder('by', Tools::getValue('orderby'), true) . ' ' . Tools::getProductsOrder('way', Tools::getValue('orderway')) .
+                    ' LIMIT ' . (((int)$this->page - 1) * $n . ',' . $n);
+            } else {
+                $sql = 'SELECT p.*,' . ($alias_where == 'p' ? '' : 'product_shop.*,') . '
+				' . $alias_where . '.id_category_default,
+				pl.*,
+				MAX(image_shop.`id_image`) id_image,
+				il.legend,
+				m.name manufacturer_name,
+				DATEDIFF(' . $alias_where . '.`date_add`, DATE_SUB(NOW(), INTERVAL ' . (int)$nb_day_new_product . ' DAY)) > 0 AS new,
+				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
+			FROM `' . _DB_PREFIX_ . 'category_product` cp
+			LEFT JOIN ' . _DB_PREFIX_ . 'category c ON (c.id_category = cp.id_category)
+			LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON p.`id_product` = cp.`id_product`
+			' . Shop::addSqlAssociation('product', 'p') . '
+			' . Product::sqlStock('p', null, false, Context::getContext()->shop) . '
+			LEFT JOIN ' . _DB_PREFIX_ . 'product_lang pl ON (pl.id_product = p.id_product' . Shop::addSqlRestrictionOnLang('pl') . ' AND pl.id_lang = ' . (int)$cookie->id_lang . ')
+			LEFT JOIN `' . _DB_PREFIX_ . 'image` i  ON (i.`id_product` = p.`id_product`)' .
+                    Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1') . '
+			LEFT JOIN `' . _DB_PREFIX_ . 'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = ' . (int)$cookie->id_lang . ')
+			LEFT JOIN ' . _DB_PREFIX_ . 'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
+			WHERE ' . $alias_where . '.`active` = 1 AND ' . $alias_where . '.`visibility` IN ("both", "catalog")
+			AND ' . (Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= ' . (int)$parent->nleft . ' AND c.nright <= ' . (int)$parent->nright : 'c.id_category = ' . (int)$id_parent) . '
+			AND c.active = 1
+			AND p.id_product IN (' . implode(',', $product_id_list) . ')
 			GROUP BY product_shop.id_product
-			ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).
-			' LIMIT '.(((int)$this->page - 1) * $n.','.$n));
-		}
+			ORDER BY ' . Tools::getProductsOrder('by', Tools::getValue('orderby'), true) . ' ' . Tools::getProductsOrder('way', Tools::getValue('orderway')) .
+                    ' LIMIT ' . (((int)$this->page - 1) * $n . ',' . $n);
+            }
+            error_log("blocklayered " . $sql);
+
+            $this->products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+        }
 		
 		if (Tools::getProductsOrder('by', Tools::getValue('orderby'), true) == 'p.price')
 			Tools::orderbyPrice($this->products, Tools::getProductsOrder('way', Tools::getValue('orderway')));
-			
 		return $this->products;
 	}
 	
