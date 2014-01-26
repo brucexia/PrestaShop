@@ -72,23 +72,12 @@
 		<!-- Subcategories -->
 		<div id="subcategories">
 			<h3>{l s='Subcategories'}</h3>
-			<ul class="inline_list">
-			{foreach from=$subcategories item=subcategory}
-				<li class="clearfix">
-					<a href="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'htmlall':'UTF-8'}" title="{$subcategory.name|escape:'htmlall':'UTF-8'}" class="img">
-						{if $subcategory.id_image}
-							<img src="{$link->getCatImageLink($subcategory.link_rewrite, $subcategory.id_image, 'medium_default')|escape:'html'}" alt="" width="{$mediumSize.width}" height="{$mediumSize.height}" />
-						{else}
-							<img src="{$img_cat_dir}default-medium_default.jpg" alt="" width="{$mediumSize.width}" height="{$mediumSize.height}" />
-						{/if}
-					</a>
-					<a href="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'htmlall':'UTF-8'}" class="cat_name">{$subcategory.name|escape:'htmlall':'UTF-8'}</a>
-					{if $subcategory.description}
-						<p class="cat_desc">{$subcategory.description}</p>
-					{/if}
-				</li>
-			{/foreach}
-			</ul>
+            <select onchange="if ($(this).val() != '') document.location.href = $(this).val();">
+                <option value="">{l s='Choose subcategory'}</option>
+                {foreach from=$subcategories item=subcategory}
+                    <option value="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'htmlall':'UTF-8'}">{$subcategory.name|escape:'htmlall':'UTF-8'}</option>
+                {/foreach}
+            </select>
 			<br class="clear"/>
 		</div>
 		{/if}
