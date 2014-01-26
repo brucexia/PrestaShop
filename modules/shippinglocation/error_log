@@ -1,10 +1,0 @@
-[07-Jan-2014 19:56:13 US/Eastern] PHP Fatal error:  Uncaught You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '`store_id`=1 
-	  where customer_id=' at line 1<br /><br /><pre>
-      UPDATE  `ps_customer_stores` set `customer_id`=,`store_id`=1 
-	  where customer_id=</pre>
-  thrown in /home2/nvisions/public_html/presta/classes/db/Db.php on line 613
-[08-Jan-2014 01:15:14 US/Eastern] PHP Fatal error:  Uncaught You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '`store_id`=1 
-	  where customer_id=' at line 1<br /><br /><pre>
-      UPDATE  `ps_customer_stores` set `customer_id`=,`store_id`=1 
-	  where customer_id=</pre>
-  thrown in /home2/nvisions/public_html/presta/classes/db/Db.php on line 613

@@ -58,13 +58,14 @@ function searchLocations()
 	$('#stores_loader').show();
 	
 	var address = document.getElementById('addressInput').value;
-	//alert(address);
+	
 	var geocoder = new google.maps.Geocoder();
 	geocoder.geocode({address: address}, function(results, status) {
+		
 		if (status === google.maps.GeocoderStatus.OK)
 			searchLocationsNear(results[0].geometry.location);
 		else
-			alert(address+' '+translation_6);
+			//alert(address+' '+translation_6);
 		$('#stores_loader').hide();
 	});
 }
@@ -122,7 +123,7 @@ function searchLocationsNear(center)
 			createOption(name, distance, i);
 			createMarker(latlng, name, address, other, id_store, has_store_picture);
 			bounds.extend(latlng);
-			$('table#stores-table').find('tbody').append('<tr ><td class="num">'+parseInt(i + 1)+'</td><td><input type="radio" value="'+id_store+'" name="store" onclick= "store1('+id_store+')" id="store_id_'+id_store+'"/></td><td class="name">'+(has_store_picture == 1 ? '<img src="'+img_store_dir+parseInt(id_store)+'.jpg" alt="" />' : '')+'<span id="store_name_'+id_store+'">'+name+'</span></td><td class="address">'+address+(phone !== '' ? ''+translation_4+' '+phone : '')+'</td><td class="distance">'+distance+' '+distance_unit+'</td></tr>');
+			$('table#stores-table').find('tbody').append('<tr ><td class="num">'+parseInt(i + 1)+'</td><td><input type="radio" value="'+id_store+'" name="store" onclick= "store1('+id_store+')" id="store_id_'+id_store+'"/></td><td class="name">'+(has_store_picture == 1 ? '<img src="'+img_store_dir+parseInt(id_store)+'.jpg" alt="" />' : '')+'<span id="store_name'+id_store+'">'+name+'</span></td><td class="address">'+address+(phone !== '' ? ''+translation_4+' '+phone : '')+'</td><td class="distance">'+distance+' '+distance_unit+'</td></tr>');
 			$('#store_id_'+default_store).attr('checked',true);
 			$('#stores-table').show();
 		}
@@ -234,6 +235,7 @@ $(document).ready(function()
 });
 
 function showmap(){
+	
 	$('#stores').css("visibility", "visible");
 	$('#stores').css("height", 'auto');
 	  $( "#shopMapId" ).prop("onclick", null);
@@ -267,7 +269,10 @@ function showmap(){
 	
 	}
 	function toggleMap(){
-		
-		$('#stores').toggle('slow');
+		//alert('toggleMap');
+		//$('#stores').toggle('slow');
+		$('#stores').css("visibility", "visible");
+	$('#stores').css("height", 'auto');
+	$('#stores').toggle('slow');
 		
 		}

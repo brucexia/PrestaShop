@@ -505,6 +505,7 @@
 	</div>
 
 	<div class="container-command container-command-top-spacing">
+    
 		<!-- Addresses -->
 		{if !$order->isVirtual()}
 			<div style="width: 49%; float:left;">
@@ -787,6 +788,16 @@
 		</fieldset>
 	{/if}
 	</div>
+    <div id="message" style="height:auto; width:350px;background-color: #EBEDF4;border: 1px solid #CCCED7;color: #585A69;font-size: 1.1em;margin: 0;padding: 1em; float:right;"> 
+    
+    
+  <h1> Store Details</h1>
+    {if isset($store_name1)}
+    Store Name: {$store_name1}   <br />   Store Address: {$address_store}
+    {/if}
+    
+    
+    </div>
 	<div class="clear">&nbsp;</div>
 	<br /><br /><a href="{$current_index}&token={$smarty.get.token}"><img src="../img/admin/arrow2.gif" /> {l s='Back to list'}</a><br />
 {/block}
