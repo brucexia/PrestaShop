@@ -56,7 +56,9 @@
 		</span>
 		{/if}
 	</td>
-	{if $display_warehouse}<td align="center">{$product.warehouse_name|escape:'htmlall':'UTF-8'}</td>{/if}
+    <td align="center">{$product.product_ean13}</td>
+
+    {if $display_warehouse}<td align="center">{$product.warehouse_name|escape:'htmlall':'UTF-8'}</td>{/if}
 	{if ($order->hasBeenPaid())}
 		<td align="center" class="productQuantity">
 			{$product['product_quantity_refunded']}
